@@ -1,7 +1,9 @@
 #include <iostream>
-#include <WinSock2.h>
 #include <Ws2tcpip.h>
-// Linking the library needed for network communication
+#include <winsock2.h>
+#include <mswsock.h>
+#include <filesystem>
+#pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "ws2_32.lib")
 int main()
 {
@@ -35,10 +37,25 @@ int main()
 		return 1;
 	}
 	// Send data to the server
-	const char* message = "LIST D:\\";
+	const char* message = "INFO D:\\text.txt";
 	send(clientSocket, message, (int)strlen(message), 0);
-	int bytesReceived = 1;
-	while (bytesReceived > 0) {
+	/*
+	char response[1024];
+	memset(response, 0, 1024);
+	recv(clientSocket, response, sizeof(response), 0);
+	std::cout << response << std::endl;
+
+	HANDLE hFile = CreateFileA("D:\\clientInfo.txt", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (!TransmitFile(clientSocket, hFile, GetFileSize(hFile, NULL), 0, NULL, NULL, 0))
+	{
+		std::cerr << "File send error: " << WSAGetLastError() << std::endl;
+		closesocket(clientSocket);
+		WSACleanup();
+		return 1;
+	}
+	*/
+	int bytesReceived = 1024;
+	while (bytesReceived == 1024) {
 		char buffer[1024];
 		memset(buffer, 0, 1024);
 		bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
@@ -46,6 +63,5 @@ int main()
 	}
 	closesocket(clientSocket);
 	WSACleanup();
-	
 	return 0;
 }

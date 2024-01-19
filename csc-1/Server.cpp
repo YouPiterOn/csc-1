@@ -1,5 +1,16 @@
 #include "Server.h"
 
+const int chunkSize = 1024;
+
+template <typename TP>
+std::time_t to_time_t(TP tp)
+{
+	using namespace std::chrono;
+	auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+		+ system_clock::now());
+	return system_clock::to_time_t(sctp);
+}
+
 int Server::Start() {
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 	{
@@ -53,8 +64,8 @@ void Server::Close() {
 }
 
 int Server::Listen() {
-	char request[1024];
-	memset(request, 0, 1024);
+	char request[chunkSize];
+	memset(request, 0, chunkSize);
 	int bytesReceived = recv(clientSocket, request, sizeof(request), 0);
 	if (bytesReceived == 0) {
 		return 1;
@@ -74,12 +85,55 @@ int Server::Listen() {
 			return 1;
 		}
 	}
-	if (strcmp(command, "LIST") == 0) {
+	else if (strcmp(command, "LIST") == 0) {
 		std::string response = "";
-		for (const auto& file : fs::directory_iterator(path)) {
-			response += file.path().string();
-			response += "\n";
+		for (const auto& entry : fs::directory_iterator(path)) {
+		 	response += entry.path().string();
+		 	response += "\n";
 		}
+		send(clientSocket, response.c_str(), response.size(), 0);
+	}
+	else if (strcmp(command, "DELETE") == 0) {
+		if (std::remove(path) == 0) {
+			const char* response = "File deleted successfully";
+			send(clientSocket, response, sizeof(response), 0);
+		}
+		else {
+			const char* response = "Failed to delete file";
+			send(clientSocket, response, (int)strlen(response), 0);
+		}
+	}
+	else if (strcmp(command, "PUT") == 0) {
+		const char* response = "Ready to accept file";
+		send(clientSocket, response, (int)strlen(response), 0);
+
+		std::string fileData = "";
+		bytesReceived = chunkSize;
+		while (bytesReceived == chunkSize) {
+			char buffer[chunkSize+1];
+			memset(buffer, 0, chunkSize+1);
+			bytesReceived = recv(clientSocket, buffer, chunkSize, 0);
+			fileData += buffer;
+		}
+		std::ofstream file(path);
+
+		file << fileData;
+
+		response = "File creation succeeded";
+		send(clientSocket, response, (int)strlen(response), 0);
+	}
+	else if (strcmp(command, "INFO") == 0) {
+		fs::directory_entry file{ path };
+		std::string fileSize = static_cast<std::stringstream>(std::stringstream() << file.file_size()).str();
+
+		fs::file_time_type fileTime = file.last_write_time();
+		time_t tt = to_time_t(fileTime);
+		std::stringstream buffer;
+		struct tm gmt;
+		gmtime_s(&gmt, &tt);
+		buffer << std::put_time(&gmt, "%A, %d %B %Y %H:%M");
+		std::string lastModified = buffer.str();
+		std::string response = "File size: " + fileSize + "\n" + "Last modified: " + lastModified;
 		send(clientSocket, response.c_str(), response.size(), 0);
 	}
 	return 0;

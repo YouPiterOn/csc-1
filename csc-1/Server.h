@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <chrono>
+#include <time.h>
 #include <iostream>
 #include <winsock2.h>
 #include <mswsock.h>
