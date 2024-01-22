@@ -107,17 +107,14 @@ int Server::Listen() {
 		const char* response = "Ready to accept file";
 		send(clientSocket, response, (int)strlen(response), 0);
 
-		std::string fileData = "";
+		std::ofstream file(path);
 		bytesReceived = chunkSize;
 		while (bytesReceived == chunkSize) {
 			char buffer[chunkSize+1];
 			memset(buffer, 0, chunkSize+1);
 			bytesReceived = recv(clientSocket, buffer, chunkSize, 0);
-			fileData += buffer;
+			file << buffer;
 		}
-		std::ofstream file(path);
-
-		file << fileData;
 
 		response = "File creation succeeded";
 		send(clientSocket, response, (int)strlen(response), 0);

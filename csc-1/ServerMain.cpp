@@ -10,7 +10,7 @@ int main()
 	if (server.ConnectClient() == 1) {
 		return 1;
 	}
-	server.Listen();
-	server.Close();
+	while (server.Listen() != 1) {}
 	
+	server.Close();
 }
