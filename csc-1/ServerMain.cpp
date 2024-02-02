@@ -7,10 +7,7 @@ int main()
 	if (server.Start() == 1) {
 		return 1;
 	}
-	if (server.ConnectClient() == 1) {
-		return 1;
-	}
-	while (server.Listen() != 1) {}
+	while (server.ListenForClientConnections() != 1) {}
 	
 	server.Close();
 }

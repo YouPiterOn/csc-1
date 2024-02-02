@@ -4,10 +4,12 @@
 #include <sstream>
 #include <chrono>
 #include <time.h>
+#include <thread>
 #include <iostream>
 #include <winsock2.h>
 #include <mswsock.h>
 #include <filesystem>
+#include <list>
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
 namespace fs = std::filesystem;
@@ -20,12 +22,11 @@ class Server
 	SOCKET serverSocket;
 	sockaddr_in serverAddr;
 
-	SOCKET clientSocket;
-
 public:
 	int Start();
 	int ConnectClient();
 	void Close();
-	int Listen();
+	int ListenForClientConnections();
+	int Listen(SOCKET clientSocket);
 };
 

@@ -1,6 +1,6 @@
 #include "Client.h"
 
-const int chunkSize = 1024;
+const int chunkSize = 2048;
 
 int Client::Start() {
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
