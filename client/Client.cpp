@@ -29,6 +29,11 @@ int Client::ConnectToServer() {
 		WSACleanup();
 		return 1;
 	}
+
+	std::string name = "";
+	std::cout << "Enter client name: ";
+	std::cin >> name;
+	send(clientSocket, name.c_str(), name.size(), 0);
 	return 0;
 }
 

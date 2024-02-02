@@ -83,6 +83,15 @@ int Server::ListenForClientConnections() {
 }
 
 int Server::Listen(SOCKET clientSocket) {
+	char clientName[chunkSize];
+	memset(clientName, 0, chunkSize);
+	int bytesReceived = recv(clientSocket, clientName, sizeof(clientName), 0);
+
+	std::string clientDir = "D:\\server\\";
+	clientDir += clientName;
+	if(!fs::exists(clientDir))
+		fs::create_directory(clientDir);
+
 	while (true) {
 		char request[chunkSize];
 		memset(request, 0, chunkSize);
@@ -92,7 +101,9 @@ int Server::Listen(SOCKET clientSocket) {
 		}
 		char* next = NULL;
 		char* command = strtok_s(request, " ", &next);
-		char* path = strtok_s(NULL, " ", &next);
+		std::string temp = clientDir.c_str();
+		temp += strtok_s(NULL, " ", &next);
+		char* path = (char*)temp.c_str();
 		if (strcmp(command, "GET") == 0) {
 
 			HANDLE hFile = CreateFileA(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
