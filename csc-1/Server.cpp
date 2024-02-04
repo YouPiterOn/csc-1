@@ -89,6 +89,7 @@ int Server::Listen(SOCKET clientSocket) {
 
 	std::string clientDir = "D:\\server\\";
 	clientDir += clientName;
+	clientDir += "\\";
 	if(!fs::exists(clientDir))
 		fs::create_directory(clientDir);
 
@@ -101,12 +102,11 @@ int Server::Listen(SOCKET clientSocket) {
 		}
 		char* next = NULL;
 		char* command = strtok_s(request, " ", &next);
-		std::string temp = clientDir.c_str();
-		temp += strtok_s(NULL, " ", &next);
-		char* path = (char*)temp.c_str();
+		std::string path = clientDir.c_str();
+		path += strtok_s(NULL, " ", &next);
 		if (strcmp(command, "GET") == 0) {
 
-			HANDLE hFile = CreateFileA(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			HANDLE hFile = CreateFileA(path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 			if (!TransmitFile(clientSocket, hFile, GetFileSize(hFile, NULL), 0, NULL, NULL, 0))
 			{
@@ -119,14 +119,14 @@ int Server::Listen(SOCKET clientSocket) {
 		}
 		else if (strcmp(command, "LIST") == 0) {
 			std::string response = "";
-			for (const auto& entry : fs::directory_iterator(path)) {
+			for (const auto& entry : fs::directory_iterator(path.c_str())) {
 				response += entry.path().string();
 				response += "\n";
 			}
 			send(clientSocket, response.c_str(), response.size(), 0);
 		}
 		else if (strcmp(command, "DELETE") == 0) {
-			if (std::remove(path) == 0) {
+			if (std::remove(path.c_str()) == 0) {
 				const char* response = "File deleted successfully";
 				send(clientSocket, response, sizeof(response), 0);
 			}
